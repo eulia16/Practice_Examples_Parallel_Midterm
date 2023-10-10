@@ -1,10 +1,8 @@
 package org.example;
 
+import java.util.Currency;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Hello world!
@@ -55,6 +53,7 @@ public class App
 
         OrderingLocks o = new OrderingLocks();
 
+        //this is jyst an example using runnables for practice, a more concise way of doing this would be something like |
         ExecutorService someOtherThreads = Executors.newFixedThreadPool(2);
         Runnable[] someIncrements = new Runnable[numThreads];
         Runnable[] someDecrements = new Runnable[numThreads];
@@ -94,6 +93,41 @@ public class App
 
 
         someOtherThreads.shutdown();
+
+
+        //| more concise w/ countdown latch(COUNTS DOWN COUNTER NOT NUMBER OF THREADS, ONE THREAD CSN COUNTDOWN > 1)
+        CountDownLatch countDownLatch = new CountDownLatch(7);
+        ExecutorService es = Executors.newFixedThreadPool(20);
+        for (int i = 0; i < 100; i++) {
+            es.execute(() -> {
+                long prevValue = countDownLatch.getCount();
+                countDownLatch.countDown();
+                if (countDownLatch.getCount() != prevValue) {
+                    outputScraper.add("Count Updated");
+                }
+            });
+        }
+        es.shutdown();
+
+        //example w cyclic barrier(reusable)
+        CyclicBarrier cyclicBarrier = new CyclicBarrier(numThreads);
+        ExecutorService anotherOne = Executors.newFixedThreadPool(numThreads);
+        for (int i = 0; i < 100; i++) {
+            es.execute(() -> {
+                if(cyclicBarrier.getNumberWaiting() < 1)
+                    System.out.println("No more peeps are waiting, count updated");
+                try {
+                    cyclicBarrier.await();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (BrokenBarrierException e) {
+                    throw new RuntimeException(e);
+                }
+
+            });
+        }
+        anotherOne.shutdown();
+
         //now if we swapped the order of the locks, theres a good chance it would have deadlocked(i tested it later
         // it did indeed deadlock if you swap one of the methods locks to lock on lock 2 first ;))
 
