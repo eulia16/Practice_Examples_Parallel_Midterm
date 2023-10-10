@@ -126,6 +126,7 @@ public class App
 
             });
         }
+        System.out.println("stuff");
         anotherOne.shutdown();
 
         //now if we swapped the order of the locks, theres a good chance it would have deadlocked(i tested it later
