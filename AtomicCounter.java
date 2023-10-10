@@ -28,7 +28,7 @@ public class AtomicCounter {
 
     private int count2 =0;
     //i know java locks are reentrant, but i like the look of this better tgan lock = new reentrant()...
-    private ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
     public void incrementWithLock(){
         this.lock.lock();//lock the bitch
